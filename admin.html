@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SK TechInfoMedia – Admin Panel</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --red:#E8151B;--org:#FF9800;--dark:#1A1A2E;--navy:#16213E;
+  --white:#fff;--off:#F0F2F8;--muted:#6B7280;--green:#22C55E;
+  --border:#E5E7EB;--sidebar:#1A1A2E;--sidebar-w:255px;
+}
+body{font-family:"Segoe UI",system-ui,sans-serif;background:var(--off);color:var(--dark);display:flex;min-height:100vh;font-size:14px}
+
+/* LOGIN */
+.login-screen{position:fixed;inset:0;z-index:1000;background:linear-gradient(135deg,#1A1A2E 0%,#16213E 50%,#0F3460 100%);display:flex;align-items:center;justify-content:center}
+.login-box{background:#fff;border-radius:20px;padding:44px 38px;width:100%;max-width:400px;box-shadow:0 32px 80px rgba(0,0,0,.4)}
+.login-logo{text-align:center;margin-bottom:28px}
+.lb-ico{width:56px;height:56px;background:linear-gradient(135deg,#2196F3,#0D47A1);border-radius:14px;display:inline-flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#fff;margin-bottom:10px}
+.login-logo h1{font-size:20px;font-weight:800;color:var(--dark)}
+.login-logo p{font-size:12px;color:var(--muted);margin-top:3px}
+.lf{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.lf label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.lf input{border:1.5px solid var(--border);border-radius:9px;padding:11px 13px;font-size:14px;outline:none;transition:border-color .2s}
+.lf input:focus{border-color:var(--red)}
+.login-btn{width:100%;background:var(--red);color:#fff;border:none;border-radius:9px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;margin-top:6px;transition:background .2s}
+.login-btn:hover{background:#bf1014}
+.login-err{color:var(--red);font-size:12px;text-align:center;margin-top:8px;display:none}
+
+/* SIDEBAR */
+.sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--sidebar);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;overflow-y:auto}
+.sb-logo{padding:20px 18px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px}
+.sb-badge{width:36px;height:36px;background:linear-gradient(135deg,#2196F3,#0D47A1);border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:15px;flex-shrink:0}
+.sb-logo-txt{font-size:14px;font-weight:800;color:#fff;line-height:1.2}
+.sb-logo-sub{font-size:9px;color:rgba(255,255,255,.35);letter-spacing:1px;text-transform:uppercase}
+.sb-nav{padding:12px 10px;flex:1}
+.sb-sec{font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.28);text-transform:uppercase;font-weight:700;padding:10px 8px 5px}
+.sb-item{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:9px;cursor:pointer;margin-bottom:2px;color:rgba(255,255,255,.55);font-size:12px;font-weight:500;transition:all .2s;border:none;background:none;width:100%;text-align:left}
+.sb-item:hover{background:rgba(255,255,255,.08);color:#fff}
+.sb-item.active{background:var(--red);color:#fff;font-weight:700}
+.sb-item .ico{font-size:15px;width:18px;text-align:center;flex-shrink:0}
+.sb-bottom{padding:14px;border-top:1px solid rgba(255,255,255,.08)}
+.logout-btn{display:flex;align-items:center;gap:8px;padding:9px 11px;border-radius:9px;cursor:pointer;color:rgba(255,255,255,.45);font-size:12px;background:none;border:none;width:100%;transition:all .2s}
+.logout-btn:hover{background:rgba(255,0,0,.15);color:#ff8a8a}
+
+/* MAIN */
+.main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh}
+.topbar{background:#fff;border-bottom:1px solid var(--border);padding:0 28px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.topbar h2{font-size:16px;font-weight:800;color:var(--dark)}
+.topbar-r{display:flex;align-items:center;gap:10px}
+.tbtn{border:none;border-radius:8px;padding:8px 18px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .2s}
+.tbtn-save{background:var(--green);color:#fff}
+.tbtn-save:hover{background:#16a34a}
+.tbtn-prev{background:var(--dark);color:#fff}
+.tbtn-prev:hover{background:#2d2d4e}
+.tbtn-export{background:var(--org);color:#fff}
+.tbtn-export:hover{background:#e68900}
+.content{padding:24px 28px;flex:1}
+
+/* PANELS */
+.panel{display:none}
+.panel.active{display:block}
+
+/* CARDS */
+.sec-card{background:#fff;border-radius:14px;padding:22px 24px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:18px}
+.sec-card h3{font-size:14px;font-weight:700;color:var(--dark);margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--off);display:flex;align-items:center;gap:8px}
+.badge-tag{background:var(--red);color:#fff;font-size:9px;padding:2px 8px;border-radius:100px;font-weight:700;letter-spacing:1px}
+.badge-green{background:var(--green)}
+.badge-org{background:var(--org)}
+
+/* FORMS */
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fg2.c1{grid-template-columns:1fr}
+.fg2.c3{grid-template-columns:1fr 1fr 1fr}
+.fg2.c4{grid-template-columns:1fr 1fr 1fr 1fr}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.fg input,.fg textarea,.fg select{border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;font-family:inherit;outline:none;transition:border-color .2s;background:#fff;color:var(--dark);resize:vertical}
+.fg input:focus,.fg textarea:focus,.fg select:focus{border-color:var(--red)}
+.fg textarea{min-height:70px}
+.row{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:10px;background:var(--off);border-radius:9px}
+.row-num{width:28px;height:28px;background:var(--org);color:#fff;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+.del-btn{background:rgba(232,21,27,.1);color:var(--red);border:none;border-radius:6px;padding:5px 9px;cursor:pointer;font-size:11px;font-weight:700;transition:background .2s;flex-shrink:0}
+.del-btn:hover{background:rgba(232,21,27,.22)}
+.add-btn{display:inline-flex;align-items:center;gap:5px;padding:8px 16px;background:var(--org);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;margin-top:8px;transition:background .2s}
+.add-btn:hover{background:#e68900}
+.add-btn.blue{background:#667EEA}
+.add-btn.blue:hover{background:#5a6edb}
+
+/* STATS DASHBOARD */
+.stat-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
+.stat-c{background:#fff;border-radius:12px;padding:18px 20px;box-shadow:0 2px 8px rgba(0,0,0,.06);border-left:4px solid var(--red)}
+.stat-c:nth-child(2){border-left-color:var(--org)}
+.stat-c:nth-child(3){border-left-color:#667EEA}
+.stat-c:nth-child(4){border-left-color:var(--green)}
+.stat-c:nth-child(5){border-left-color:#F72585}
+.stat-n{font-size:28px;font-weight:800;color:var(--dark);line-height:1}
+.stat-l{font-size:11px;color:var(--muted);margin-top:3px}
+
+/* LEADS TABLE */
+.tbl-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:700px}
+th{text-align:left;padding:10px 14px;background:var(--off);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700;white-space:nowrap}
+td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:hover td{background:#FFFBF5}
+tr:last-child td{border-bottom:none}
+.status-badge{padding:3px 10px;border-radius:100px;font-size:10px;font-weight:700;display:inline-block}
+.status-new{background:#FEF3C7;color:#D97706}
+.status-contacted{background:#D1FAE5;color:#059669}
+.status-closed{background:#F3F4F6;color:#6B7280}
+.status-sel{border:1.5px solid var(--border);border-radius:6px;padding:4px 8px;font-size:11px;background:#fff;cursor:pointer}
+
+/* CLIENTS TABLE */
+.clt-input{width:100%;border:1.5px solid var(--border);border-radius:6px;padding:5px 9px;font-size:12px;font-family:inherit;outline:none}
+.clt-input:focus{border-color:var(--red)}
+.icon-input{width:50px;text-align:center;font-size:17px}
+.sec-input{border:1.5px solid var(--border);border-radius:6px;padding:5px 8px;font-size:11px;background:#fff}
+
+/* THEME PREVIEW */
+.theme-preview{border-radius:14px;overflow:hidden;border:1px solid var(--border);margin-top:16px}
+.tp-nav{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font-size:12px;font-weight:700}
+.tp-hero{height:90px;display:flex;align-items:center;padding:0 20px}
+.tp-hero-txt{font-size:20px;font-weight:900;line-height:1.1}
+.tp-btn{padding:7px 16px;border-radius:6px;font-size:11px;font-weight:700;display:inline-block;color:#fff;margin-top:8px}
+.tp-strip{height:28px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;letter-spacing:2px}
+.color-pick-row{display:flex;align-items:center;gap:10px;margin-top:8px}
+.color-pick-row input[type=color]{width:44px;height:36px;padding:2px;border-radius:8px;border:1.5px solid var(--border);cursor:pointer}
+.clr-presets{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.clr-dot{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .2s}
+.clr-dot:hover,.clr-dot.sel{border-color:#000;transform:scale(1.15)}
+
+/* EMAILJS SECTION */
+.info-box{background:linear-gradient(135deg,#EEF2FF,#F0F9FF);border:1px solid #C7D2FE;border-radius:10px;padding:14px 16px;margin-bottom:14px;font-size:12px;line-height:1.7;color:#4338CA}
+.info-box strong{font-weight:700}
+.info-box a{color:#4338CA;text-decoration:underline}
+.step-badge{background:#667EEA;color:#fff;border-radius:100px;padding:2px 9px;font-size:10px;font-weight:700;margin-right:6px}
+
+/* SLIDE CARD */
+.slide-cards{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.slide-card{border:1.5px solid var(--border);border-radius:12px;padding:16px;position:relative;transition:border-color .2s}
+.slide-card:hover{border-color:var(--org)}
+.sc-num{position:absolute;top:-9px;left:14px;background:var(--org);color:#fff;font-size:9px;font-weight:700;padding:2px 9px;border-radius:100px}
+.pts-area{border:1.5px solid var(--border);border-radius:8px;padding:8px 11px;font-size:12px;font-family:inherit;width:100%;min-height:80px;resize:vertical;outline:none}
+.pts-area:focus{border-color:var(--red)}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;z-index:9999;background:var(--green);color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:700;box-shadow:0 8px 24px rgba(34,197,94,.4);transform:translateY(80px);opacity:0;transition:all .4s ease;display:flex;align-items:center;gap:8px;max-width:340px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.err{background:var(--red);box-shadow:0 8px 24px rgba(232,21,27,.4)}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:16px;padding:28px;width:100%;max-width:600px;max-height:80vh;overflow-y:auto;box-shadow:0 32px 80px rgba(0,0,0,.3)}
+.modal h3{font-size:16px;font-weight:800;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center}
+.modal-close{background:var(--off);border:none;border-radius:8px;padding:5px 12px;cursor:pointer;font-size:13px;font-weight:700}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="lb-ico">SK</div>
+      <h1>SK TechInfoMedia</h1>
+      <p>Admin Content Management System</p>
+    </div>
+    <div class="lf"><label>Username</label><input type="text" id="loginUser" placeholder="admin" autocomplete="username"></div>
+    <div class="lf"><label>Password</label><input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="login-btn" onclick="doLogin()">Sign In →</button>
+    <div class="login-err" id="loginErr">❌ Invalid username or password</div>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+  <div class="sb-logo">
+    <div class="sb-badge">SK</div>
+    <div><div class="sb-logo-txt">TechInfoMedia</div><div class="sb-logo-sub">CMS Admin</div></div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-sec">Overview</div>
+    <button class="sb-item active" onclick="showPanel('dashboard',this)"><span class="ico">📊</span><span>Dashboard</span></button>
+    <button class="sb-item" onclick="showPanel('leads',this)"><span class="ico">📥</span><span>Enquiries / Leads</span></button>
+    <div class="sb-sec">Site Content</div>
+    <button class="sb-item" onclick="showPanel('contact',this)"><span class="ico">📞</span><span>Contact Info</span></button>
+    <button class="sb-item" onclick="showPanel('hero',this)"><span class="ico">🏠</span><span>Hero Section</span></button>
+    <button class="sb-item" onclick="showPanel('about',this)"><span class="ico">🏢</span><span>About Section</span></button>
+    <button class="sb-item" onclick="showPanel('stats',this)"><span class="ico">📈</span><span>Stats & Numbers</span></button>
+    <button class="sb-item" onclick="showPanel('slides',this)"><span class="ico">🎬</span><span>Showcase Slides</span></button>
+    <button class="sb-item" onclick="showPanel('clients',this)"><span class="ico">🏆</span><span>Client Brands</span></button>
+    <button class="sb-item" onclick="showPanel('portfolio',this)"><span class="ico">📁</span><span>Portfolio Items</span></button>
+    <div class="sb-sec">Design & Config</div>
+    <button class="sb-item" onclick="showPanel('theme',this)"><span class="ico">🎨</span><span>Theme & Colors</span></button>
+    <button class="sb-item" onclick="showPanel('email',this)"><span class="ico">📧</span><span>Email Settings</span></button>
+    <button class="sb-item" onclick="showPanel('seo',this)"><span class="ico">🔍</span><span>SEO Settings</span></button>
+    <button class="sb-item" onclick="showPanel('password',this)"><span class="ico">🔐</span><span>Change Password</span></button>
+  </div>
+  <div class="sb-bottom">
+    <button class="logout-btn" onclick="doLogout()"><span class="ico">🚪</span><span>Logout</span></button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main" id="mainArea" style="display:none">
+  <div class="topbar">
+    <h2 id="panelTitle">Dashboard</h2>
+    <div class="topbar-r">
+      <button class="tbtn tbtn-export" onclick="exportLeads()">📤 Export Leads</button>
+      <button class="tbtn tbtn-prev" onclick="window.open('sk_techinfomedia.html','_blank')">👁 Preview Site</button>
+      <button class="tbtn tbtn-save" onclick="saveAll()">💾 Save All (Ctrl+S)</button>
+    </div>
+  </div>
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="panel active" id="panel-dashboard">
+      <div class="stat-row">
+        <div class="stat-c"><div class="stat-n" id="ds-leads">0</div><div class="stat-l">New Leads</div></div>
+        <div class="stat-c"><div class="stat-n" id="ds-leads-total">0</div><div class="stat-l">Total Enquiries</div></div>
+        <div class="stat-c"><div class="stat-n" id="ds-clients">24</div><div class="stat-l">Client Brands</div></div>
+        <div class="stat-c"><div class="stat-n">8</div><div class="stat-l">Showcase Slides</div></div>
+        <div class="stat-c"><div class="stat-n" style="color:var(--green)">●</div><div class="stat-l">Site Status: Live</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:16px">
+        <div class="sec-card">
+          <h3>📥 Recent Enquiries</h3>
+          <div id="dash-leads-preview" style="font-size:12px;color:var(--muted)">No enquiries yet.</div>
+          <button class="add-btn blue" onclick="showPanel('leads',document.querySelector('.sb-item:nth-child(3)'));document.querySelector('.sb-item:nth-child(3)').click()" style="margin-top:12px">View All Leads →</button>
+        </div>
+        <div class="sec-card">
+          <h3>⚡ Quick Edit Contact</h3>
+          <div class="fg" style="margin-bottom:10px"><label>Phone / WhatsApp</label><input type="tel" id="q-phone" placeholder="+91 99744 90634"></div>
+          <div class="fg" style="margin-bottom:10px"><label>Email Address</label><input type="email" id="q-email" placeholder="info@sktechinfomedia.com"></div>
+          <div class="fg"><label>Location</label><input type="text" id="q-location" placeholder="Ahmedabad, Gujarat, India"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LEADS / ENQUIRIES -->
+    <div class="panel" id="panel-leads">
+      <div class="sec-card">
+        <h3>📥 All Enquiries <span class="badge-tag badge-green" id="leads-count-badge">0 leads</span></h3>
+        <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+          <button class="add-btn" style="background:#E8151B" onclick="clearLeads()">🗑 Clear All</button>
+          <button class="add-btn" onclick="exportLeads()">📤 Export CSV</button>
+          <select id="lead-filter" onchange="renderLeads()" style="border:1.5px solid var(--border);border-radius:8px;padding:7px 12px;font-size:12px;background:#fff">
+            <option value="all">All Statuses</option>
+            <option value="New">New</option>
+            <option value="Contacted">Contacted</option>
+            <option value="Closed">Closed</option>
+          </select>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>#</th><th>Date & Time</th><th>Name</th><th>Phone</th><th>Company</th><th>Service</th><th>Message</th><th>Status</th></tr></thead>
+            <tbody id="leads-tbody"></tbody>
+          </table>
+        </div>
+        <div id="leads-empty" style="text-align:center;padding:40px;color:var(--muted);font-size:13px;display:none">
+          📭 No enquiries received yet.<br>They will appear here when customers submit the contact form.
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTACT -->
+    <div class="panel" id="panel-contact">
+      <div class="sec-card">
+        <h3>📞 Contact Details <span class="badge-tag">LIVE ON SITE</span></h3>
+        <div class="fg2">
+          <div class="fg"><label>Phone / WhatsApp</label><input type="tel" id="c-phone" placeholder="+91 99744 90634"></div>
+          <div class="fg"><label>Email Address</label><input type="email" id="c-email" placeholder="info@sktechinfomedia.com"></div>
+          <div class="fg"><label>Office Location</label><input type="text" id="c-location" placeholder="Ahmedabad, Gujarat, India"></div>
+          <div class="fg"><label>Working Hours</label><input type="text" id="c-hours" placeholder="Mon–Sat: 9 AM – 7 PM"></div>
+          <div class="fg"><label>WhatsApp Number (digits only)</label><input type="text" id="c-wa" placeholder="919974490634"></div>
+          <div class="fg"><label>Google Maps Link (optional)</label><input type="text" id="c-maps" placeholder="https://maps.google.com/..."></div>
+        </div>
+      </div>
+      <div class="sec-card">
+        <h3>📋 Form Response Settings</h3>
+        <div class="fg2">
+          <div class="fg"><label>Success Message shown to user</label><input type="text" id="c-form-msg" placeholder="✓ Enquiry sent! We will contact you shortly."></div>
+          <div class="fg"><label>Form Lead Notification Email</label><input type="email" id="c-form-email" placeholder="leads@sktechinfomedia.com"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HERO -->
+    <div class="panel" id="panel-hero">
+      <div class="sec-card">
+        <h3>🏠 Hero Section Content</h3>
+        <div class="fg2">
+          <div class="fg"><label>Eyebrow Badge Text</label><input type="text" id="h-eyebrow" placeholder="Gujarat's #1 Advertising Partner"></div>
+          <div class="fg"><label>Primary CTA Button</label><input type="text" id="h-cta" placeholder="Get Free Quote →"></div>
+          <div class="fg"><label>Headline Line 1</label><input type="text" id="h-l1" placeholder="360°"></div>
+          <div class="fg"><label>Headline Line 2 (Red color)</label><input type="text" id="h-l2" placeholder="AD SOLUTIONS"></div>
+          <div class="fg"><label>Headline Line 3 (Grey)</label><input type="text" id="h-l3" placeholder="FOR GUJARAT"></div>
+          <div class="fg"><label>Secondary Button</label><input type="text" id="h-cta2" placeholder="View Our Work"></div>
+        </div>
+        <div class="fg" style="margin-top:12px"><label>Hero Sub Description</label><textarea id="h-sub" rows="3"></textarea></div>
+      </div>
+    </div>
+
+    <!-- ABOUT -->
+    <div class="panel" id="panel-about">
+      <div class="sec-card">
+        <h3>🏢 About Section</h3>
+        <div class="fg2 c1">
+          <div class="fg"><label>Section Title</label><input type="text" id="a-title" placeholder="YOUR BRAND, EVERYWHERE"></div>
+          <div class="fg"><label>Paragraph 1</label><textarea id="a-p1" rows="3"></textarea></div>
+          <div class="fg"><label>Paragraph 2</label><textarea id="a-p2" rows="3"></textarea></div>
+          <div class="fg"><label>Paragraph 3</label><textarea id="a-p3" rows="3"></textarea></div>
+        </div>
+      </div>
+      <div class="sec-card">
+        <h3>✨ Feature Points</h3>
+        <div id="feature-list"></div>
+        <button class="add-btn" onclick="addFeature()">+ Add Feature</button>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="panel" id="panel-stats">
+      <div class="sec-card">
+        <h3>📈 Hero Statistics (4 counters)</h3>
+        <div class="fg2 c4">
+          <div class="fg"><label>Stat 1 — Number</label><input type="text" id="st-1n" placeholder="500+"></div>
+          <div class="fg"><label>Stat 1 — Label</label><input type="text" id="st-1l" placeholder="Campaigns Done"></div>
+          <div class="fg"><label>Stat 2 — Number</label><input type="text" id="st-2n" placeholder="10+"></div>
+          <div class="fg"><label>Stat 2 — Label</label><input type="text" id="st-2l" placeholder="Years Experience"></div>
+          <div class="fg"><label>Stat 3 — Number</label><input type="text" id="st-3n" placeholder="16+"></div>
+          <div class="fg"><label>Stat 3 — Label</label><input type="text" id="st-3l" placeholder="Ad Formats"></div>
+          <div class="fg"><label>Stat 4 — Number</label><input type="text" id="st-4n" placeholder="All GJ"></div>
+          <div class="fg"><label>Stat 4 — Label</label><input type="text" id="st-4l" placeholder="Gujarat Coverage"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDES -->
+    <div class="panel" id="panel-slides">
+      <div class="sec-card">
+        <h3>🎬 Showcase Slides <span class="badge-tag badge-org">8 SLIDES</span></h3>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:16px">Edit badge, title, description and bullet points for each campaign slide.</p>
+        <div class="slide-cards" id="slide-cards"></div>
+      </div>
+    </div>
+
+    <!-- CLIENTS -->
+    <div class="panel" id="panel-clients">
+      <div class="sec-card">
+        <h3>🏆 Client Brands <span class="badge-tag" id="client-count-tag">24</span></h3>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:14px">Add, remove or edit brands shown in the "Brands That Trust Us" section.</p>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>#</th><th>Icon (emoji)</th><th>Brand Name</th><th>Sector</th><th>Remove</th></tr></thead>
+            <tbody id="client-tbody"></tbody>
+          </table>
+        </div>
+        <button class="add-btn" onclick="addClient()" style="margin-top:12px">+ Add Client Brand</button>
+      </div>
+    </div>
+
+    <!-- PORTFOLIO -->
+    <div class="panel" id="panel-portfolio">
+      <div class="sec-card">
+        <h3>📁 Portfolio / Service Items</h3>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:14px">These labels appear in the 360° Service Showcase grid.</p>
+        <div id="portfolio-list"></div>
+        <button class="add-btn" onclick="addPortfolio()" style="margin-top:10px">+ Add Item</button>
+      </div>
+    </div>
+
+    <!-- THEME -->
+    <div class="panel" id="panel-theme">
+      <div class="sec-card">
+        <h3>🎨 Brand Colors <span class="badge-tag">LIVE PREVIEW</span></h3>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:16px">Changes are reflected instantly in the preview below and on the live site after saving.</p>
+        <div class="fg2">
+          <div class="fg">
+            <label>Primary Color (buttons, accents)</label>
+            <div class="color-pick-row">
+              <input type="color" id="clr-primary" value="#E8151B" oninput="updateColor('primary',this.value)">
+              <input type="text" id="clr-primary-hex" value="#E8151B" style="flex:1" onchange="updateColor('primary',this.value)">
+            </div>
+            <div class="clr-presets">
+              <div class="clr-dot sel" style="background:#E8151B" onclick="updateColor('primary','#E8151B')" title="Red"></div>
+              <div class="clr-dot" style="background:#2196F3" onclick="updateColor('primary','#2196F3')" title="Blue"></div>
+              <div class="clr-dot" style="background:#9333EA" onclick="updateColor('primary','#9333EA')" title="Purple"></div>
+              <div class="clr-dot" style="background:#059669" onclick="updateColor('primary','#059669')" title="Green"></div>
+              <div class="clr-dot" style="background:#DC2626" onclick="updateColor('primary','#DC2626')" title="Dark Red"></div>
+              <div class="clr-dot" style="background:#EA580C" onclick="updateColor('primary','#EA580C')" title="Orange Red"></div>
+            </div>
+          </div>
+          <div class="fg">
+            <label>Accent Color (highlights, badges)</label>
+            <div class="color-pick-row">
+              <input type="color" id="clr-accent" value="#FF9800" oninput="updateColor('accent',this.value)">
+              <input type="text" id="clr-accent-hex" value="#FF9800" style="flex:1" onchange="updateColor('accent',this.value)">
+            </div>
+            <div class="clr-presets">
+              <div class="clr-dot sel" style="background:#FF9800" onclick="updateColor('accent','#FF9800')" title="Orange"></div>
+              <div class="clr-dot" style="background:#F59E0B" onclick="updateColor('accent','#F59E0B')" title="Amber"></div>
+              <div class="clr-dot" style="background:#10B981" onclick="updateColor('accent','#10B981')" title="Emerald"></div>
+              <div class="clr-dot" style="background:#6366F1" onclick="updateColor('accent','#6366F1')" title="Indigo"></div>
+              <div class="clr-dot" style="background:#EC4899" onclick="updateColor('accent','#EC4899')" title="Pink"></div>
+              <div class="clr-dot" style="background:#14B8A6" onclick="updateColor('accent','#14B8A6')" title="Teal"></div>
+            </div>
+          </div>
+          <div class="fg">
+            <label>Hero / Dark Background</label>
+            <div class="color-pick-row">
+              <input type="color" id="clr-dark" value="#1A1A2E" oninput="updateColor('darkBg',this.value)">
+              <input type="text" id="clr-dark-hex" value="#1A1A2E" style="flex:1" onchange="updateColor('darkBg',this.value)">
+            </div>
+            <div class="clr-presets">
+              <div class="clr-dot sel" style="background:#1A1A2E" onclick="updateColor('darkBg','#1A1A2E')"></div>
+              <div class="clr-dot" style="background:#111827" onclick="updateColor('darkBg','#111827')"></div>
+              <div class="clr-dot" style="background:#0F172A" onclick="updateColor('darkBg','#0F172A')"></div>
+              <div class="clr-dot" style="background:#1E1B4B" onclick="updateColor('darkBg','#1E1B4B')"></div>
+              <div class="clr-dot" style="background:#064E3B" onclick="updateColor('darkBg','#064E3B')"></div>
+            </div>
+          </div>
+          <div class="fg">
+            <label>Nav Bar Background</label>
+            <div class="color-pick-row">
+              <input type="color" id="clr-nav" value="#ffffff" oninput="updateColor('navBg',this.value)">
+              <input type="text" id="clr-nav-hex" value="#ffffff" style="flex:1" onchange="updateColor('navBg',this.value)">
+            </div>
+            <div class="clr-presets">
+              <div class="clr-dot sel" style="background:#ffffff;border:1px solid #eee" onclick="updateColor('navBg','#ffffff')"></div>
+              <div class="clr-dot" style="background:#1A1A2E" onclick="updateColor('navBg','#1A1A2E')"></div>
+              <div class="clr-dot" style="background:#0F172A" onclick="updateColor('navBg','#0F172A')"></div>
+              <div class="clr-dot" style="background:#1E293B" onclick="updateColor('navBg','#1E293B')"></div>
+            </div>
+          </div>
+        </div>
+        <!-- LIVE THEME PREVIEW -->
+        <div class="theme-preview" id="themePreview" style="margin-top:20px">
+          <div class="tp-nav" id="tp-nav" style="background:#fff;border-bottom:1px solid #eee">
+            <span style="font-weight:800;font-size:13px">SK TECHINFOMEDIA</span>
+            <span id="tp-cta" style="background:#E8151B;color:#fff;padding:5px 14px;border-radius:6px;font-size:11px;font-weight:700">📞 Call Now</span>
+          </div>
+          <div class="tp-hero" id="tp-hero" style="background:linear-gradient(135deg,#1A1A2E,#0F3460)">
+            <div>
+              <div class="tp-hero-txt" style="color:#fff">360° <span id="tp-red" style="color:#E8151B">AD SOLUTIONS</span></div>
+              <div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:4px">FOR GUJARAT</div>
+              <div class="tp-btn" id="tp-btn" style="background:#E8151B">Get Free Quote →</div>
+            </div>
+          </div>
+          <div class="tp-strip" id="tp-strip" style="background:#E8151B">AUTO RICKSHAW ✦ HOARDING ✦ DIGITAL ✦ EVENTS ✦ BRANDING</div>
+        </div>
+      </div>
+      <div class="sec-card">
+        <h3>🔗 Social Links</h3>
+        <div class="fg2">
+          <div class="fg"><label>WhatsApp Number</label><input type="text" id="soc-wa" placeholder="919974490634"></div>
+          <div class="fg"><label>Facebook URL</label><input type="text" id="soc-fb" placeholder="https://facebook.com/sktechinfomedia"></div>
+          <div class="fg"><label>Instagram URL</label><input type="text" id="soc-ig" placeholder="https://instagram.com/sktechinfomedia"></div>
+          <div class="fg"><label>YouTube URL</label><input type="text" id="soc-yt" placeholder="https://youtube.com/@sktechinfomedia"></div>
+        </div>
+      </div>
+      <div class="sec-card">
+        <h3>🔡 Typography</h3>
+        <div class="fg2">
+          <div class="fg"><label>Body Font Size</label>
+            <select id="font-size">
+              <option value="14px">14px (Default)</option>
+              <option value="15px">15px (Large)</option>
+              <option value="13px">13px (Compact)</option>
+            </select>
+          </div>
+          <div class="fg"><label>Border Radius Style</label>
+            <select id="border-radius">
+              <option value="10px">Rounded (10px) – Default</option>
+              <option value="4px">Sharp (4px)</option>
+              <option value="20px">Very Rounded (20px)</option>
+              <option value="0px">Square (0px)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EMAIL SETTINGS -->
+    <div class="panel" id="panel-email">
+      <div class="sec-card">
+        <h3>📧 Email Notifications Setup</h3>
+        <div class="info-box">
+          <strong>How to receive form emails:</strong><br>
+          This site uses <strong>EmailJS</strong> (free — 200 emails/month). Setup takes 5 minutes:<br>
+          <span class="step-badge">1</span> Go to <a href="https://www.emailjs.com" target="_blank">emailjs.com</a> → Create free account<br>
+          <span class="step-badge">2</span> Add Email Service → Connect your Gmail/Outlook → Copy <strong>Service ID</strong><br>
+          <span class="step-badge">3</span> Create Email Template → Use variables: <code>{{from_name}}</code>, <code>{{from_phone}}</code>, <code>{{service_required}}</code>, <code>{{message}}</code> → Copy <strong>Template ID</strong><br>
+          <span class="step-badge">4</span> Go to Account → Copy <strong>Public Key</strong><br>
+          <span class="step-badge">5</span> Paste all three below and click Save
+        </div>
+        <div class="fg2">
+          <div class="fg"><label>EmailJS Service ID</label><input type="text" id="ejs-service" placeholder="service_xxxxxxx"></div>
+          <div class="fg"><label>EmailJS Template ID</label><input type="text" id="ejs-template" placeholder="template_xxxxxxx"></div>
+          <div class="fg"><label>EmailJS Public Key</label><input type="text" id="ejs-pubkey" placeholder="xxxxxxxxxxxxxxxxxxx"></div>
+          <div class="fg"><label>Send Notifications To (your email)</label><input type="email" id="ejs-to" placeholder="youremail@gmail.com"></div>
+        </div>
+        <div id="email-test-status" style="margin-top:12px;font-size:13px"></div>
+        <button class="add-btn" onclick="testEmail()" style="margin-top:4px;background:#667EEA">🧪 Send Test Email</button>
+      </div>
+      <div class="sec-card">
+        <h3>📱 WhatsApp Notification (Optional)</h3>
+        <div class="info-box" style="background:#F0FDF4;border-color:#BBF7D0;color:#166534">
+          When someone submits the form, you also get a WhatsApp message. Uses <strong>CallMeBot API</strong> (free).<br>
+          <span class="step-badge" style="background:#166534">1</span> Send <code>I allow callmebot to send me messages</code> to <strong>+34 644 28 89 76</strong> on WhatsApp<br>
+          <span class="step-badge" style="background:#166534">2</span> You'll receive an API key. Paste it below.
+        </div>
+        <div class="fg2">
+          <div class="fg"><label>Your WhatsApp Number (with country code)</label><input type="text" id="wa-num" placeholder="919974490634"></div>
+          <div class="fg"><label>CallMeBot API Key</label><input type="text" id="wa-apikey" placeholder="1234567"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEO -->
+    <div class="panel" id="panel-seo">
+      <div class="sec-card">
+        <h3>🔍 SEO & Meta Settings</h3>
+        <div class="fg2 c1">
+          <div class="fg"><label>Page Title (shown in browser tab)</label><input type="text" id="seo-title" placeholder="SK TechInfoMedia – 360° Advertising Solutions Gujarat"></div>
+          <div class="fg"><label>Meta Description (shown in Google search)</label><textarea id="seo-desc" rows="2" placeholder="Gujarat's #1 advertising company..."></textarea></div>
+          <div class="fg"><label>Meta Keywords</label><input type="text" id="seo-keywords" placeholder="advertising Gujarat, hoarding Ahmedabad, digital marketing Gujarat"></div>
+          <div class="fg"><label>OG Image URL (for WhatsApp/Facebook sharing)</label><input type="text" id="seo-og" placeholder="https://sktechinfomedia.com/og-image.jpg"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASSWORD -->
+    <div class="panel" id="panel-password">
+      <div class="sec-card" style="max-width:440px">
+        <h3>🔐 Change Admin Password</h3>
+        <div class="fg2 c1">
+          <div class="fg"><label>Current Password</label><input type="password" id="pw-cur" placeholder="••••••••"></div>
+          <div class="fg"><label>New Password (min 6 chars)</label><input type="password" id="pw-new" placeholder="••••••••"></div>
+          <div class="fg"><label>Confirm New Password</label><input type="password" id="pw-cf" placeholder="••••••••"></div>
+        </div>
+        <button class="add-btn" style="background:var(--red);margin-top:4px" onclick="changePass()">Update Password</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Lead Detail Modal -->
+<div class="modal-bg" id="leadModal">
+  <div class="modal">
+    <h3>Lead Details <button class="modal-close" onclick="document.getElementById('leadModal').classList.remove('open')">✕ Close</button></h3>
+    <div id="leadModalBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// CREDENTIALS & DATA
+// ═══════════════════════════════════════════════════════════
+let CREDS = JSON.parse(localStorage.getItem('sk_creds')||'{"user":"admin","pass":"sk@2024"}');
+
+const DEF = {
+  contact:{phone:"+91 99744 90634",email:"info@sktechinfomedia.com",location:"Ahmedabad, Gujarat, India",hours:"Mon–Sat: 9 AM – 7 PM",wa:"919974490634",maps:"",formEmail:"info@sktechinfomedia.com",formMsg:"✓ Enquiry sent! We will contact you shortly."},
+  hero:{eyebrow:"Gujarat's #1 Advertising Partner",l1:"360°",l2:"AD SOLUTIONS",l3:"FOR GUJARAT",sub:"From hoardings to digital campaigns, auto rickshaw branding to full event management — SK TechInfoMedia puts your brand everywhere that matters.",cta:"Get Free Quote →",cta2:"View Our Work"},
+  about:{title:"YOUR BRAND, EVERYWHERE",p1:"SK TechInfoMedia is Gujarat's trusted 360° advertising, printing, branding, digital & event solutions company.",p2:"From grassroots auto-rickshaw campaigns across Gujarat's villages to premium mall and metro branding in city centres.",p3:"Whether you need outdoor hoardings, vehicle wraps, wall paintings, digital campaigns or complete event management, we bring your vision to life."},
+  features:[{icon:"🗺️",title:"Pan-Gujarat Network",desc:"Dealer boards, wall paintings and outdoor media across all cities."},{icon:"📱",title:"Digital + Physical",desc:"Bulk SMS, WhatsApp and social media integrated with outdoor branding."},{icon:"🎯",title:"One-Stop Solution",desc:"Design, print, execute — everything under one roof."},{icon:"🏆",title:"Proven Track Record",desc:"Trusted by brands in banking, FMCG, education and retail."}],
+  stats:{s1n:"500+",s1l:"Campaigns Done",s2n:"10+",s2l:"Years Experience",s3n:"16+",s3l:"Ad Formats",s4n:"All GJ",s4l:"Gujarat Coverage"},
+  slides:[
+    {badge:"Digital Marketing",title:"Digital & Audio Solutions",sub:"Radio · Social Media · Google Ads · SEO · Content Creation",pts:["Measurable Performance","Targeted Audience Reach","Multi-Platform Branding","Cost-Effective Digital Spend"]},
+    {badge:"Outdoor Branding",title:"Complete Outdoor Solutions",sub:"Car Wraps · Vehicle Branding · Wall Paintings · Shop Fronts",pts:["High-Traffic Presence","Unavoidable Exposure","Repetitive Messaging","Focused Local Visibility"]},
+    {badge:"Traffic Branding",title:"Traffic Booth Branding",sub:"Establish your brand at key intersections across Gujarat",pts:["High-Traffic Presence","Unavoidable Exposure","Compliance Messaging","Focused Local Visibility"]},
+    {badge:"Transit Branding",title:"Mall · Metro · Airport",sub:"Take your brand to malls, metro stations and airports",pts:["Mass Reach","High Visibility","Daily Impressions","Cost Effective"]},
+    {badge:"Bus Branding",title:"City Bus Branding",sub:"Unstoppable reach — city-wide visibility every single day",pts:["Mass Reach","High Visibility","Daily Impressions","Cost Effective"]},
+    {badge:"Society Branding",title:"Society Board Branding",sub:"Build stronger communities — brand society gates & boards",pts:["Community Identity","Effective Communication","Enhanced Security","Cost Effective"]},
+    {badge:"Auto Branding",title:"Auto Rickshaw Branding",sub:"Your brand on the move — big impact every mile",pts:["Maximum Visibility","Targeted Reach","Cost Effective","Stronger Recall"]},
+    {badge:"Auto Hood Ads",title:"Auto Hood Branding",sub:"Turn every ride into a powerful marketing opportunity",pts:["Maximum Visibility","Targeted Reach","Cost Effective","Stronger Recall"]},
+  ],
+  clients:[
+    {icon:"🏦",name:"Central Bank of India",sector:"Banking"},{icon:"🏠",name:"Swaraj Home Loans",sector:"Finance"},
+    {icon:"💊",name:"PharmEasy",sector:"Healthcare"},{icon:"⚙️",name:"Lubi Pumps",sector:"Industrial"},
+    {icon:"🏍️",name:"Hero MotoCorp",sector:"Automobile"},{icon:"💰",name:"Muthoot Money",sector:"Finance"},
+    {icon:"📊",name:"Chahal Academy",sector:"Education"},{icon:"💧",name:"Prince Storefit",sector:"FMCG"},
+    {icon:"💎",name:"Indriya Jewellery",sector:"Retail"},{icon:"🚗",name:"Vinayak TMT",sector:"Construction"},
+    {icon:"🎓",name:"H3 Pre-School",sector:"Education"},{icon:"🏗️",name:"UltraTech Cement",sector:"Construction"},
+    {icon:"🍔",name:"Amul",sector:"FMCG"},{icon:"🏢",name:"IDFC Bank",sector:"Banking"},
+    {icon:"💼",name:"Kalyan Jewellers",sector:"Retail"},{icon:"🌐",name:"IDP Education",sector:"Education"},
+    {icon:"🎪",name:"Falcon Industries",sector:"Manufacturing"},{icon:"💎",name:"GIVA Jewellery",sector:"Retail"},
+    {icon:"📚",name:"Skipper Pipes",sector:"Industrial"},{icon:"🏪",name:"Crompton Pumps",sector:"Industrial"},
+    {icon:"🍽️",name:"Paradise Biryani",sector:"Food"},{icon:"🎯",name:"Dell Technologies",sector:"Technology"},
+    {icon:"💳",name:"Bajaj Finserv",sector:"Finance"},{icon:"🏡",name:"Daikin AC",sector:"Electronics"},
+  ],
+  portfolio:["Hoarding","Mobile Van Branding","Trycycle Branding","Bus Branding (City-Rural)","Wall Painting Branding","Auto Rickshaw Branding","Exhibition Branding","Society Board Branding","Car Branding","Cinema · Radio · Train","Society Activity","Society Marketing","Indoor / Outdoor Printing","Signages · Printing · LED","Traffic Booth","Digital Marketing","Corporate Gift Branding"],
+  branding:{primary:"#E8151B",accent:"#FF9800",darkBg:"#1A1A2E",navBg:"#ffffff",fontSize:"14px",borderRadius:"10px"},
+  social:{wa:"919974490634",fb:"",ig:"",yt:""},
+  emailjs:{serviceId:"",templateId:"",publicKey:"",toEmail:""},
+  waNotify:{num:"",apikey:""},
+  seo:{title:"SK TechInfoMedia – 360° Advertising Solutions Gujarat",desc:"Gujarat's #1 advertising company.",keywords:"advertising Gujarat, hoarding Ahmedabad",og:""},
+};
+
+let D = JSON.parse(localStorage.getItem('sk_cms_data')||JSON.stringify(DEF));
+// Merge any missing keys
+Object.keys(DEF).forEach(k=>{ if(!D[k]) D[k]=DEF[k]; });
+
+// ═══════════════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════════════
+function doLogin(){
+  const u=document.getElementById('loginUser').value.trim();
+  const p=document.getElementById('loginPass').value;
+  if(u===CREDS.user&&p===CREDS.pass){
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('mainArea').style.display='flex';
+    initAll();
+  } else {
+    const e=document.getElementById('loginErr');
+    e.style.display='block';
+    setTimeout(()=>e.style.display='none',3000);
+  }
+}
+function doLogout(){
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('mainArea').style.display='none';
+}
+document.getElementById('loginUser').focus();
+
+// ═══════════════════════════════════════════════════════════
+// PANELS
+// ═══════════════════════════════════════════════════════════
+function showPanel(id,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  if(btn) btn.classList.add('active');
+  const titles={dashboard:'Dashboard',leads:'Enquiries & Leads',contact:'Contact Information',hero:'Hero Section',about:'About Section',stats:'Statistics',slides:'Showcase Slides',clients:'Client Brands',portfolio:'Portfolio Items',theme:'Theme & Colors',email:'Email Settings',seo:'SEO Settings',password:'Change Password'};
+  document.getElementById('panelTitle').textContent=titles[id]||id;
+}
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+function initAll(){
+  initContact(); initHero(); initAbout(); initStats();
+  initSlides(); initClients(); initPortfolio(); initTheme();
+  initEmail(); initSeo(); loadLeads();
+}
+
+function initContact(){
+  const c=D.contact||{};
+  const map={phone:'c-phone',email:'c-email',location:'c-location',hours:'c-hours',wa:'c-wa',maps:'c-maps',formEmail:'c-form-email',formMsg:'c-form-msg'};
+  Object.entries(map).forEach(([k,id])=>{const el=document.getElementById(id);if(el)el.value=c[k]||'';});
+  if(document.getElementById('q-phone')) document.getElementById('q-phone').value=c.phone||'';
+  if(document.getElementById('q-email')) document.getElementById('q-email').value=c.email||'';
+  if(document.getElementById('q-location')) document.getElementById('q-location').value=c.location||'';
+}
+
+function initHero(){
+  const h=D.hero||{};
+  const map={eyebrow:'h-eyebrow',l1:'h-l1',l2:'h-l2',l3:'h-l3',sub:'h-sub',cta:'h-cta',cta2:'h-cta2'};
+  Object.entries(map).forEach(([k,id])=>{const el=document.getElementById(id);if(el)el.value=h[k]||'';});
+}
+
+function initAbout(){
+  const a=D.about||{};
+  ['title','p1','p2','p3'].forEach(k=>{const el=document.getElementById('a-'+k);if(el)el.value=a[k]||'';});
+  renderFeatures();
+}
+
+function renderFeatures(){
+  const el=document.getElementById('feature-list');
+  el.innerHTML='';
+  (D.features||[]).forEach((f,i)=>{
+    el.innerHTML+=`<div class="row">
+      <div class="row-num">${i+1}</div>
+      <input class="clt-input icon-input" type="text" value="${f.icon}" onchange="D.features[${i}].icon=this.value" title="Emoji icon">
+      <input class="clt-input" style="flex:.8" type="text" value="${f.title}" onchange="D.features[${i}].title=this.value" placeholder="Title">
+      <input class="clt-input" style="flex:2" type="text" value="${f.desc}" onchange="D.features[${i}].desc=this.value" placeholder="Description">
+      <button class="del-btn" onclick="D.features.splice(${i},1);renderFeatures()">✕</button>
+    </div>`;
+  });
+}
+function addFeature(){ D.features.push({icon:"⭐",title:"New Feature",desc:"Description"}); renderFeatures(); }
+
+function initStats(){
+  const s=D.stats||{};
+  ['1','2','3','4'].forEach(n=>{
+    const en=document.getElementById('st-'+n+'n'); if(en) en.value=s['s'+n+'n']||'';
+    const el=document.getElementById('st-'+n+'l'); if(el) el.value=s['s'+n+'l']||'';
+  });
+}
+
+function initSlides(){
+  const wrap=document.getElementById('slide-cards');
+  wrap.innerHTML='';
+  (D.slides||[]).forEach((s,i)=>{
+    wrap.innerHTML+=`<div class="slide-card">
+      <div class="sc-num">Slide ${i+1}</div>
+      <div class="fg" style="margin-bottom:8px"><label>Badge</label><input type="text" value="${s.badge}" onchange="D.slides[${i}].badge=this.value"></div>
+      <div class="fg" style="margin-bottom:8px"><label>Title</label><input type="text" value="${s.title}" onchange="D.slides[${i}].title=this.value"></div>
+      <div class="fg" style="margin-bottom:8px"><label>Sub-description</label><input type="text" value="${s.sub}" onchange="D.slides[${i}].sub=this.value"></div>
+      <div class="fg"><label>Bullet Points (one per line)</label>
+        <textarea class="pts-area" onchange="D.slides[${i}].pts=this.value.split('\\n').filter(Boolean)">${s.pts.join('\n')}</textarea></div>
+    </div>`;
+  });
+}
+
+function initClients(){ renderClients(); }
+function renderClients(){
+  const tb=document.getElementById('client-tbody'); tb.innerHTML='';
+  const sectors=['Banking','Finance','Healthcare','Industrial','Automobile','FMCG','Education','Retail','Construction','Manufacturing','Technology','Food','Electronics','Media','Real Estate','Other'];
+  (D.clients||[]).forEach((c,i)=>{
+    const opts=sectors.map(s=>`<option ${s===c.sector?'selected':''}>${s}</option>`).join('');
+    tb.innerHTML+=`<tr>
+      <td style="color:var(--muted);font-size:11px">${i+1}</td>
+      <td><input class="clt-input icon-input" type="text" value="${c.icon}" onchange="D.clients[${i}].icon=this.value"></td>
+      <td><input class="clt-input" style="min-width:160px" type="text" value="${c.name}" onchange="D.clients[${i}].name=this.value"></td>
+      <td><select class="sec-input" onchange="D.clients[${i}].sector=this.value">${opts}</select></td>
+      <td><button class="del-btn" onclick="D.clients.splice(${i},1);renderClients()">Remove</button></td>
+    </tr>`;
+  });
+  const n=D.clients?.length||0;
+  document.getElementById('client-count-tag').textContent=n;
+  document.getElementById('ds-clients').textContent=n;
+}
+function addClient(){ D.clients.push({icon:"🏢",name:"New Client",sector:"Other"}); renderClients(); }
+
+function initPortfolio(){ renderPortfolio(); }
+function renderPortfolio(){
+  const wrap=document.getElementById('portfolio-list'); wrap.innerHTML='';
+  (D.portfolio||[]).forEach((p,i)=>{
+    wrap.innerHTML+=`<div class="row">
+      <div class="row-num">${String(i+1).padStart(2,'0')}</div>
+      <input class="clt-input" style="flex:1" type="text" value="${p}" onchange="D.portfolio[${i}]=this.value">
+      <button class="del-btn" onclick="D.portfolio.splice(${i},1);renderPortfolio()">✕</button>
+    </div>`;
+  });
+}
+function addPortfolio(){ D.portfolio.push("New Service"); renderPortfolio(); }
+
+function initTheme(){
+  const b=D.branding||{};
+  setClr('primary',b.primary||'#E8151B');
+  setClr('accent',b.accent||'#FF9800');
+  setClr('dark',b.darkBg||'#1A1A2E');
+  setClr('nav',b.navBg||'#ffffff');
+  if(document.getElementById('font-size')) document.getElementById('font-size').value=b.fontSize||'14px';
+  if(document.getElementById('border-radius')) document.getElementById('border-radius').value=b.borderRadius||'10px';
+  const s=D.social||{};
+  ['wa','fb','ig','yt'].forEach(k=>{const el=document.getElementById('soc-'+k);if(el)el.value=s[k]||'';});
+  updatePreview();
+}
+
+function setClr(key,val){
+  const picker=document.getElementById('clr-'+key);
+  const hex=document.getElementById('clr-'+key+'-hex');
+  if(picker) picker.value=val;
+  if(hex) hex.value=val;
+}
+
+function updateColor(key,val){
+  if(key==='primary'){ setClr('primary',val); }
+  else if(key==='accent'){ setClr('accent',val); }
+  else if(key==='darkBg'){ setClr('dark',val); }
+  else if(key==='navBg'){ setClr('nav',val); }
+  // update preset dots
+  document.querySelectorAll('.clr-presets .clr-dot').forEach(d=>{
+    if(d.style.background.toLowerCase()===val.toLowerCase()) d.classList.add('sel');
+  });
+  updatePreview();
+}
+
+function updatePreview(){
+  const primary=document.getElementById('clr-primary')?.value||'#E8151B';
+  const accent=document.getElementById('clr-accent')?.value||'#FF9800';
+  const dark=document.getElementById('clr-dark')?.value||'#1A1A2E';
+  const navBg=document.getElementById('clr-nav')?.value||'#ffffff';
+  const nav=document.getElementById('tp-nav');
+  const hero=document.getElementById('tp-hero');
+  const strip=document.getElementById('tp-strip');
+  const btn=document.getElementById('tp-btn');
+  const red=document.getElementById('tp-red');
+  const cta=document.getElementById('tp-cta');
+  if(nav) nav.style.background=navBg;
+  if(hero) hero.style.background=`linear-gradient(135deg,${dark},${dark}cc)`;
+  if(strip) strip.style.background=primary;
+  if(btn) btn.style.background=primary;
+  if(red) red.style.color=primary;
+  if(cta) cta.style.background=primary;
+}
+
+function initEmail(){
+  const e=D.emailjs||{};
+  const map={serviceId:'ejs-service',templateId:'ejs-template',publicKey:'ejs-pubkey',toEmail:'ejs-to'};
+  Object.entries(map).forEach(([k,id])=>{const el=document.getElementById(id);if(el)el.value=e[k]||'';});
+  const w=D.waNotify||{};
+  if(document.getElementById('wa-num')) document.getElementById('wa-num').value=w.num||'';
+  if(document.getElementById('wa-apikey')) document.getElementById('wa-apikey').value=w.apikey||'';
+}
+
+function initSeo(){
+  const s=D.seo||{};
+  ['title','desc','keywords','og'].forEach(k=>{const el=document.getElementById('seo-'+k);if(el)el.value=s[k]||'';});
+}
+
+// ═══════════════════════════════════════════════════════════
+// LEADS
+// ═══════════════════════════════════════════════════════════
+function loadLeads(){
+  const leads=JSON.parse(localStorage.getItem('sk_leads')||'[]');
+  const newCount=leads.filter(l=>l.status==='New'||!l.status).length;
+  document.getElementById('ds-leads').textContent=newCount;
+  document.getElementById('ds-leads-total').textContent=leads.length;
+  renderLeads();
+  renderDashLeads(leads);
+}
+
+function renderDashLeads(leads){
+  const el=document.getElementById('dash-leads-preview');
+  if(!leads.length){ el.innerHTML='<div style="color:var(--muted)">No enquiries yet.</div>'; return; }
+  el.innerHTML=leads.slice(0,3).map(l=>`
+    <div style="padding:10px;background:var(--off);border-radius:8px;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <strong style="font-size:13px">${l.name}</strong>
+        <span class="status-badge status-${(l.status||'New').toLowerCase()}">${l.status||'New'}</span>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:3px">${l.phone} · ${l.service||'—'} · ${l.date}</div>
+    </div>`).join('');
+}
+
+function renderLeads(){
+  const leads=JSON.parse(localStorage.getItem('sk_leads')||'[]');
+  const filter=document.getElementById('lead-filter')?.value||'all';
+  const filtered=filter==='all'?leads:leads.filter(l=>(l.status||'New')===filter);
+  const tb=document.getElementById('leads-tbody');
+  const empty=document.getElementById('leads-empty');
+  tb.innerHTML='';
+  if(!filtered.length){ empty.style.display='block'; return; }
+  empty.style.display='none';
+  const badge=document.getElementById('leads-count-badge');
+  if(badge) badge.textContent=leads.length+' leads';
+  filtered.forEach((l,i)=>{
+    const statusOpts=['New','Contacted','Closed'].map(s=>`<option ${(l.status||'New')===s?'selected':''}>${s}</option>`).join('');
+    tb.innerHTML+=`<tr>
+      <td style="color:var(--muted);font-size:11px">${i+1}</td>
+      <td style="white-space:nowrap;font-size:11px">${l.date}</td>
+      <td style="font-weight:700">${l.name}</td>
+      <td><a href="tel:${l.phone}" style="color:var(--red);text-decoration:none;font-weight:600">${l.phone}</a></td>
+      <td>${l.company||'—'}</td>
+      <td><span style="background:rgba(255,152,0,.12);color:#b45309;padding:2px 8px;border-radius:100px;font-size:10px;font-weight:700">${l.service||'—'}</span></td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--muted)">${l.message||'—'}</td>
+      <td><select class="status-sel" onchange="updateLeadStatus(${l.id},this.value)">${statusOpts}</select></td>
+    </tr>`;
+  });
+}
+
+function updateLeadStatus(id,status){
+  const leads=JSON.parse(localStorage.getItem('sk_leads')||'[]');
+  const lead=leads.find(l=>l.id===id);
+  if(lead){ lead.status=status; localStorage.setItem('sk_leads',JSON.stringify(leads)); }
+  loadLeads();
+  showToast('Status updated to '+status);
+}
+
+function clearLeads(){
+  if(!confirm('Delete ALL enquiries? This cannot be undone.')) return;
+  localStorage.removeItem('sk_leads');
+  loadLeads();
+  showToast('All leads cleared');
+}
+
+function exportLeads(){
+  const leads=JSON.parse(localStorage.getItem('sk_leads')||'[]');
+  if(!leads.length){ showToast('No leads to export',3000,true); return; }
+  const headers=['Date','Name','Phone','Company','Service','Message','Status'];
+  const rows=leads.map(l=>[l.date,l.name,l.phone,l.company||'',l.service||'',l.message||'',l.status||'New'].map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(','));
+  const csv=[headers.join(','),...rows].join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='sk_leads_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+  showToast('✅ Exported '+leads.length+' leads as CSV');
+}
+
+// ═══════════════════════════════════════════════════════════
+// EMAIL TEST
+// ═══════════════════════════════════════════════════════════
+function testEmail(){
+  const cfg={
+    serviceId:document.getElementById('ejs-service')?.value,
+    templateId:document.getElementById('ejs-template')?.value,
+    publicKey:document.getElementById('ejs-pubkey')?.value,
+    toEmail:document.getElementById('ejs-to')?.value,
+  };
+  const st=document.getElementById('email-test-status');
+  if(!cfg.serviceId||!cfg.templateId||!cfg.publicKey){
+    st.innerHTML='<span style="color:var(--red)">❌ Please fill in all EmailJS fields first.</span>'; return;
+  }
+  st.innerHTML='<span style="color:var(--org)">⏳ Sending test email...</span>';
+  const script=document.createElement('script');
+  script.src='https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
+  script.onload=()=>{
+    emailjs.init(cfg.publicKey);
+    emailjs.send(cfg.serviceId,cfg.templateId,{from_name:'Test User',from_phone:'9999999999',from_company:'Test Company',service_required:'Test',message:'This is a test email from SK TechInfoMedia Admin Panel.',to_email:cfg.toEmail})
+      .then(()=>{ st.innerHTML='<span style="color:var(--green)">✅ Test email sent successfully!</span>'; })
+      .catch(e=>{ st.innerHTML='<span style="color:var(--red)">❌ Error: '+e.text+'</span>'; });
+  };
+  document.head.appendChild(script);
+}
+
+// ═══════════════════════════════════════════════════════════
+// SAVE ALL
+// ═══════════════════════════════════════════════════════════
+function saveAll(){
+  // Contact
+  const cMap={phone:'c-phone',email:'c-email',location:'c-location',hours:'c-hours',wa:'c-wa',maps:'c-maps',formEmail:'c-form-email',formMsg:'c-form-msg'};
+  D.contact=D.contact||{};
+  Object.entries(cMap).forEach(([k,id])=>{const el=document.getElementById(id);if(el&&el.value)D.contact[k]=el.value;});
+  if(document.getElementById('q-phone')?.value) D.contact.phone=document.getElementById('q-phone').value;
+  if(document.getElementById('q-email')?.value) D.contact.email=document.getElementById('q-email').value;
+  if(document.getElementById('q-location')?.value) D.contact.location=document.getElementById('q-location').value;
+
+  // Hero
+  D.hero=D.hero||{};
+  ['eyebrow','l1','l2','l3','sub','cta','cta2'].forEach(k=>{const el=document.getElementById('h-'+k);if(el&&el.value)D.hero[k]=el.value;});
+
+  // About
+  D.about=D.about||{};
+  ['title','p1','p2','p3'].forEach(k=>{const el=document.getElementById('a-'+k);if(el&&el.value)D.about[k]=el.value;});
+
+  // Stats
+  D.stats={
+    s1n:document.getElementById('st-1n')?.value||D.stats.s1n,
+    s1l:document.getElementById('st-1l')?.value||D.stats.s1l,
+    s2n:document.getElementById('st-2n')?.value||D.stats.s2n,
+    s2l:document.getElementById('st-2l')?.value||D.stats.s2l,
+    s3n:document.getElementById('st-3n')?.value||D.stats.s3n,
+    s3l:document.getElementById('st-3l')?.value||D.stats.s3l,
+    s4n:document.getElementById('st-4n')?.value||D.stats.s4n,
+    s4l:document.getElementById('st-4l')?.value||D.stats.s4l,
+  };
+
+  // Branding / Theme
+  D.branding={
+    primary:document.getElementById('clr-primary')?.value||D.branding.primary,
+    accent:document.getElementById('clr-accent')?.value||D.branding.accent,
+    darkBg:document.getElementById('clr-dark')?.value||D.branding.darkBg,
+    navBg:document.getElementById('clr-nav')?.value||D.branding.navBg,
+    fontSize:document.getElementById('font-size')?.value||D.branding.fontSize,
+    borderRadius:document.getElementById('border-radius')?.value||D.branding.borderRadius,
+  };
+
+  // Social
+  D.social={
+    wa:document.getElementById('soc-wa')?.value||'',
+    fb:document.getElementById('soc-fb')?.value||'',
+    ig:document.getElementById('soc-ig')?.value||'',
+    yt:document.getElementById('soc-yt')?.value||'',
+  };
+
+  // EmailJS
+  D.emailjs={
+    serviceId:document.getElementById('ejs-service')?.value||'',
+    templateId:document.getElementById('ejs-template')?.value||'',
+    publicKey:document.getElementById('ejs-pubkey')?.value||'',
+    toEmail:document.getElementById('ejs-to')?.value||'',
+  };
+
+  // WA Notify
+  D.waNotify={
+    num:document.getElementById('wa-num')?.value||'',
+    apikey:document.getElementById('wa-apikey')?.value||'',
+  };
+
+  // SEO
+  D.seo={
+    title:document.getElementById('seo-title')?.value||'',
+    desc:document.getElementById('seo-desc')?.value||'',
+    keywords:document.getElementById('seo-keywords')?.value||'',
+    og:document.getElementById('seo-og')?.value||'',
+  };
+
+  localStorage.setItem('sk_cms_data',JSON.stringify(D));
+  showToast('✅ All changes saved! Open the site to see changes.');
+  updatePreview();
+}
+
+// ═══════════════════════════════════════════════════════════
+// PASSWORD
+// ═══════════════════════════════════════════════════════════
+function changePass(){
+  const cur=document.getElementById('pw-cur').value;
+  const nw=document.getElementById('pw-new').value;
+  const cf=document.getElementById('pw-cf').value;
+  if(cur!==CREDS.pass){showToast('❌ Current password is incorrect',3000,true);return;}
+  if(nw.length<6){showToast('❌ New password must be at least 6 characters',3000,true);return;}
+  if(nw!==cf){showToast('❌ Passwords do not match',3000,true);return;}
+  CREDS.pass=nw;
+  localStorage.setItem('sk_creds',JSON.stringify(CREDS));
+  ['pw-cur','pw-new','pw-cf'].forEach(id=>document.getElementById(id).value='');
+  showToast('✅ Password changed successfully!');
+}
+
+// ═══════════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════════
+function showToast(msg,dur=3500,isErr=false){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast'+(isErr?' err':'');
+  requestAnimationFrame(()=>{ requestAnimationFrame(()=>t.classList.add('show')); });
+  setTimeout(()=>t.classList.remove('show'),dur);
+}
+
+// ═══════════════════════════════════════════════════════════
+// KEYBOARD SHORTCUTS
+// ═══════════════════════════════════════════════════════════
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();saveAll();}
+});
+</script>
+</body>
+</html>
